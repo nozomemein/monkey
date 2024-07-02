@@ -21,10 +21,12 @@ type Expression interface {
 	expressionNode()
 }
 
+// Program はASTのルートノード
 type Program struct {
 	Statements []Statement
 }
 
+// Program は Node Interface を満たす
 func (p *Program) TokenLiteral() string {
 	if len(p.Statements) > 0 {
 		return p.Statements[0].TokenLiteral()
@@ -40,7 +42,7 @@ type LetStatement struct {
 	Value Expression  // 式
 }
 
-// Statement Interface の実装
+// LetStatement は Statement Interface を満たす
 func (l *LetStatement) StatementNode()       {}
 func (l *LetStatement) TokenLiteral() string { return l.Token.Literal }
 
@@ -50,6 +52,16 @@ type Identifier struct {
 	Value string      // 変数名
 }
 
-// Expression Interface の実装
+// Identifier は Expression Interface を満たす
 func (i *Identifier) expressionNode()      {}
 func (i *Identifier) TokenLiteral() string { return i.Token.Literal }
+
+// ReturnStatement は return文を表す構造体
+type ReturnStatement struct {
+	Token       token.Token // 'return' トークン
+	ReturnValue Expression
+}
+
+// ReturnStatement は Statement Interface を満たす
+func (rs *ReturnStatement) StatementNode()       {}
+func (rs *ReturnStatement) TokenLiteral() string { return rs.Token.Literal }
