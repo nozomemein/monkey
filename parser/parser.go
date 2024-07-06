@@ -204,6 +204,8 @@ func (p *Parser) parseExpression(precedence int) ast.Expression {
 	}
 	leftExp := prefix()
 
+  // 初回はprecedenceがLOWESTなので、次のトークンが中置演算子であるかどうかを確認する
+  // その後、precedenceが現在のprecedenceよりも高い場合は、中置構文解析関数を呼び出す
   for !p.peekTokenIs(token.SEMICOLON) && precedence < p.peekPrecedence() {
     infix := p.infixParseFns[p.peekToken.Type]
     if infix == nil {
