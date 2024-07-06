@@ -59,6 +59,9 @@ func New(l *lexer.Lexer) *Parser {
 	p.registerPrefix(token.INT, p.parseIntegerLiteral)
 	p.registerPrefix(token.BANG, p.parsePrefixExpression)
 	p.registerPrefix(token.MINUS, p.parsePrefixExpression)
+	p.registerPrefix(token.TRUE, p.parseBoolean)
+	p.registerPrefix(token.FALSE, p.parseBoolean)
+	p.registerPrefix(token.LPAREN, p.parseGroupedExpression)
 
 	// 中置構文解析関数の登録
 	p.infixParseFns = make(map[token.TokenType]infixParseFn)
@@ -204,16 +207,16 @@ func (p *Parser) parseExpression(precedence int) ast.Expression {
 	}
 	leftExp := prefix()
 
-  // 初回はprecedenceがLOWESTなので、次のトークンが中置演算子であるかどうかを確認する
-  // その後、precedenceが現在のprecedenceよりも高い場合は、中置構文解析関数を呼び出す
-  for !p.peekTokenIs(token.SEMICOLON) && precedence < p.peekPrecedence() {
-    infix := p.infixParseFns[p.peekToken.Type]
-    if infix == nil {
-      return leftExp
-    }
-    p.nextToken()
-    leftExp = infix(leftExp)
-  }
+	// 初回はprecedenceがLOWESTなので、次のトークンが中置演算子であるかどうかを確認する
+	// その後、precedenceが現在のprecedenceよりも高い場合は、中置構文解析関数を呼び出す
+	for !p.peekTokenIs(token.SEMICOLON) && precedence < p.peekPrecedence() {
+		infix := p.infixParseFns[p.peekToken.Type]
+		if infix == nil {
+			return leftExp
+		}
+		p.nextToken()
+		leftExp = infix(leftExp)
+	}
 
 	return leftExp
 }
@@ -269,4 +272,21 @@ func (p *Parser) parseInfixExpression(left ast.Expression) ast.Expression {
 
 	return expression
 
+}
+
+func (p *Parser) parseBoolean() ast.Expression {
+	return &ast.Boolean{
+		Token: p.curToken,
+		Value: p.curTokenIs(token.TRUE),
+	}
+}
+
+func (p *Parser) parseGroupedExpression() ast.Expression {
+	p.nextToken()
+	exp := p.parseExpression(LOWEST)
+
+	if !p.expectPeek(token.RPAREN) {
+		return nil
+	}
+	return exp
 }
