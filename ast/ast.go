@@ -104,6 +104,7 @@ func (rs *ReturnStatement) String() string {
 }
 
 // ExpressionStatement は式文を表す構造体
+// x + 10; など
 type ExpressionStatement struct {
 	Token      token.Token // 式の最初のトークン
 	Expression Expression  // 式
@@ -120,11 +121,32 @@ func (es *ExpressionStatement) String() string {
 }
 
 // IntegerLiteral は整数リテラルを表す構造体
+// 5, 10, 993322 など
 type IntegerLiteral struct {
   Token token.Token
   Value int64
 }
 
+// IntegerLiteral は Expression Interface を満たす
 func(il *IntegerLiteral) expressionNode() {}
 func(il *IntegerLiteral) TokenLiteral() string { return il.Token.Literal }
 func(il *IntegerLiteral) String() string { return il.Token.Literal }
+
+// PrefixExpression は前置演算子を表す構造体
+type PrefixExpression struct {
+  Token token.Token // 前置トークン、例えば '!'
+  Operator string
+  Right Expression
+}
+
+// PrefixExpression は Expression Interface を満たす
+func(pe *PrefixExpression) expressionNode() {}
+func(pe *PrefixExpression) TokenLiteral() string { return pe.Token.Literal }
+func(pe *PrefixExpression) String() string {
+  var out bytes.Buffer
+  out.WriteString("(")
+  out.WriteString(pe.Operator)
+  out.WriteString(pe.Right.String())
+  out.WriteString(")")
+  return out.String()
+}
