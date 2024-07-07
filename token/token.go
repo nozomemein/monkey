@@ -12,9 +12,9 @@ const (
 	EOF     = "EOF"     // ファイル終端
 
 	// 識別子 + リテラル
-	IDENT = "IDENT" // add, foobar, x, y, ...
-	INT   = "INT"   // 1343456
-  STRING = "STRING"
+	IDENT  = "IDENT" // add, foobar, x, y, ...
+	INT    = "INT"   // 1343456
+	STRING = "STRING"
 
 	// 演算子
 	ASSIGN   = "="
@@ -33,14 +33,14 @@ const (
 	// デリミタ
 	COMMA     = ","
 	SEMICOLON = ";"
-  COLON     = ":"
+	COLON     = ":"
 
-	LPAREN = "("
-	RPAREN = ")"
-	LBRACE = "{"
-	RBRACE = "}"
-  LBRAKET = "["
-  RBRAKET = "]"
+	LPAREN  = "("
+	RPAREN  = ")"
+	LBRACE  = "{"
+	RBRACE  = "}"
+	LBRAKET = "["
+	RBRAKET = "]"
 
 	// キーワード
 	FUNCTION = "FUNCTION"
@@ -53,12 +53,12 @@ const (
 )
 
 var keywords = map[string]TokenType{
-	"fn":    FUNCTION,
-	"let":   LET,
-	"true":  TRUE,
-	"false": FALSE,
-	"if":    IF,
-	"else":  ELSE,
+	"fn":     FUNCTION,
+	"let":    LET,
+	"true":   TRUE,
+	"false":  FALSE,
+	"if":     IF,
+	"else":   ELSE,
 	"return": RETURN,
 }
 

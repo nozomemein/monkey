@@ -342,24 +342,24 @@ func (ie *IndexExpression) String() string {
 
 // HashLiteral はハッシュリテラルを表す構造体
 type HashLiteral struct {
-  Token token.Token // '{' トークン
-  Pairs map[Expression]Expression
+	Token token.Token // '{' トークン
+	Pairs map[Expression]Expression
 }
 
 // HashLiteral は Expression Interface を満たす
 func (hl *HashLiteral) expressionNode()      {}
 func (hl *HashLiteral) TokenLiteral() string { return hl.Token.Literal }
 func (hl *HashLiteral) String() string {
-  var out bytes.Buffer
+	var out bytes.Buffer
 
-  pairs := []string{}
-  for key, value := range hl.Pairs {
-    pairs = append(pairs, key.String() + ":" + value.String())
-  }
+	pairs := []string{}
+	for key, value := range hl.Pairs {
+		pairs = append(pairs, key.String()+":"+value.String())
+	}
 
-  out.WriteString("{")
-  out.WriteString(strings.Join(pairs, ", "))
-  out.WriteString("}")
+	out.WriteString("{")
+	out.WriteString(strings.Join(pairs, ", "))
+	out.WriteString("}")
 
-  return out.String()
+	return out.String()
 }
