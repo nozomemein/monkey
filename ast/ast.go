@@ -296,24 +296,46 @@ func (sl *StringLiteral) String() string       { return sl.Token.Literal }
 
 // ArrayLiteral は配列リテラルを表す構造体
 type ArrayLiteral struct {
-  Token    token.Token // '[' トークン
-  Elements []Expression
+	Token    token.Token // '[' トークン
+	Elements []Expression
 }
 
 // ArrayLiteral は Expression Interface を満たす
 func (al *ArrayLiteral) expressionNode()      {}
 func (al *ArrayLiteral) TokenLiteral() string { return al.Token.Literal }
 func (al *ArrayLiteral) String() string {
-  var out bytes.Buffer
+	var out bytes.Buffer
 
-  elements := []string{}
-  for _, el := range al.Elements {
-    elements = append(elements, el.String())
-  }
+	elements := []string{}
+	for _, el := range al.Elements {
+		elements = append(elements, el.String())
+	}
 
-  out.WriteString("[")
-  out.WriteString(strings.Join(elements, ", "))
-  out.WriteString("]")
+	out.WriteString("[")
+	out.WriteString(strings.Join(elements, ", "))
+	out.WriteString("]")
 
-  return out.String()
+	return out.String()
+}
+
+// IndexExpression は添字演算子を表す構造体
+type IndexExpression struct {
+	Token token.Token // '[' トークン
+	Left  Expression
+	Index Expression
+}
+
+// IndexExpression は Expression Interface を満たす
+func (ie *IndexExpression) expressionNode()      {}
+func (ie *IndexExpression) TokenLiteral() string { return ie.Token.Literal }
+func (ie *IndexExpression) String() string {
+	var out bytes.Buffer
+
+	out.WriteString("(")
+	out.WriteString(ie.Left.String())
+	out.WriteString("[")
+	out.WriteString(ie.Index.String())
+	out.WriteString("])")
+
+	return out.String()
 }

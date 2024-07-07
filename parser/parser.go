@@ -33,6 +33,7 @@ const (
 	PRODUCT     // *
 	PREFIX      // -X または !X
 	CALL        // myFunction(X)
+	INDEX       // array[index]
 )
 
 // トークンの優先順位
@@ -46,6 +47,7 @@ var precedences = map[token.TokenType]int{
 	token.SLASH:    PRODUCT,
 	token.ASTERISK: PRODUCT,
 	token.LPAREN:   CALL,
+  token.LBRAKET:  INDEX,
 }
 
 func New(l *lexer.Lexer) *Parser {
@@ -65,8 +67,8 @@ func New(l *lexer.Lexer) *Parser {
 	p.registerPrefix(token.LPAREN, p.parseGroupedExpression)
 	p.registerPrefix(token.IF, p.parseIfExpression)
 	p.registerPrefix(token.FUNCTION, p.parseFunctionLiteral)
-  p.registerPrefix(token.STRING, p.parseStringLiteral)
-  p.registerPrefix(token.LBRAKET, p.parseArrayLiteral)
+	p.registerPrefix(token.STRING, p.parseStringLiteral)
+	p.registerPrefix(token.LBRAKET, p.parseArrayLiteral)
 
 	// 中置構文解析関数の登録
 	p.infixParseFns = make(map[token.TokenType]infixParseFn)
@@ -79,6 +81,7 @@ func New(l *lexer.Lexer) *Parser {
 	p.registerInfix(token.LT, p.parseInfixExpression)
 	p.registerInfix(token.GT, p.parseInfixExpression)
 	p.registerInfix(token.LPAREN, p.parseCallExpression)
+	p.registerInfix(token.LBRAKET, p.parseIndexExpression)
 
 	// 2つトークンを読み込む。curToken と peekToken の両方がセットされる。
 	p.nextToken()
@@ -426,12 +429,25 @@ func (p *Parser) parseExpressionList(end token.TokenType) []ast.Expression {
 	return list
 }
 
-func(p *Parser) parseStringLiteral() ast.Expression {
-  return &ast.StringLiteral{Token: p.curToken, Value: p.curToken.Literal}
+func (p *Parser) parseStringLiteral() ast.Expression {
+	return &ast.StringLiteral{Token: p.curToken, Value: p.curToken.Literal}
 }
 
-func(p *Parser) parseArrayLiteral() ast.Expression {
-  array := &ast.ArrayLiteral{Token: p.curToken}
-  array.Elements = p.parseExpressionList(token.RBRAKET)
-  return array
+func (p *Parser) parseArrayLiteral() ast.Expression {
+	array := &ast.ArrayLiteral{Token: p.curToken}
+	array.Elements = p.parseExpressionList(token.RBRAKET)
+	return array
+}
+
+func (p *Parser) parseIndexExpression(left ast.Expression) ast.Expression {
+	exp := &ast.IndexExpression{Token: p.curToken, Left: left}
+
+	p.nextToken()
+	exp.Index = p.parseExpression(LOWEST)
+
+	if !p.expectPeek(token.RBRAKET) {
+		return nil
+	}
+
+	return exp
 }
