@@ -25,10 +25,21 @@ func Eval(node ast.Node, env *object.Environment) object.Object {
 		return evalProgram(node, env)
 	case *ast.ExpressionStatement:
 		return Eval(node.Expression, env)
-	case *ast.IntegerLiteral:
-		return &object.Integer{Value: node.Value}
-	case *ast.Boolean:
-		return nativeBoolToBooleanObject(node.Value)
+	case *ast.LetStatement:
+		val := Eval(node.Value, env)
+		if isError(
+			val) {
+			return val
+		}
+		env.Set(node.Name.Value, val)
+	case *ast.ReturnStatement:
+		val := Eval(node.ReturnValue, env)
+		if isError(val) {
+			return val
+		}
+		return &object.ReturnValue{Value: val}
+	case *ast.BlockStatement:
+		return evalBlockStatement(node, env)
 	case *ast.PrefixExpression:
 		right := Eval(node.Right, env) // 先に右辺を評価
 		if isError(right) {
@@ -45,29 +56,8 @@ func Eval(node ast.Node, env *object.Environment) object.Object {
 			return right
 		}
 		return evalInfixExpression(node.Operator, left, right)
-	case *ast.BlockStatement:
-		return evalBlockStatement(node, env)
 	case *ast.IfExpression:
 		return evalIfExpression(node, env)
-	case *ast.ReturnStatement:
-		val := Eval(node.ReturnValue, env)
-		if isError(val) {
-			return val
-		}
-		return &object.ReturnValue{Value: val}
-	case *ast.LetStatement:
-		val := Eval(node.Value, env)
-		if isError(
-			val) {
-			return val
-		}
-		env.Set(node.Name.Value, val)
-	case *ast.Identifier:
-		return evalIdentifier(node, env)
-	case *ast.FunctionLiteral:
-		params := node.Parameters
-		body := node.Body
-		return &object.Function{Parameters: params, Body: body, Env: env}
 	case *ast.CallExpression:
 		function := Eval(node.Function, env)
 		if isError(function) {
@@ -78,6 +68,18 @@ func Eval(node ast.Node, env *object.Environment) object.Object {
 			return args[0]
 		}
 		return applyFunction(function, args)
+	case *ast.IntegerLiteral:
+		return &object.Integer{Value: node.Value}
+  case *ast.StringLiteral:
+    return &object.String{Value: node.Value}
+	case *ast.FunctionLiteral:
+		params := node.Parameters
+		body := node.Body
+		return &object.Function{Parameters: params, Body: body, Env: env}
+	case *ast.Boolean:
+		return nativeBoolToBooleanObject(node.Value)
+	case *ast.Identifier:
+		return evalIdentifier(node, env)
 	}
 	return nil
 }
@@ -164,6 +166,8 @@ func evalInfixExpression(operator string, left, right object.Object) object.Obje
 		return nativeBoolToBooleanObject(left != right)
 	case left.Type() != right.Type():
 		return newError("type mismatch: %s %s %s", left.Type(), operator, right.Type())
+  case left.Type() == object.STRING_OBJ && right.Type() == object.STRING_OBJ:
+    return evalStringInfixExpression(operator, left, right)
 	default:
 		return newError("unknown operator: %s %s %s", left.Type(), operator, right.Type())
 	}
@@ -193,6 +197,18 @@ func evalIntegerInfixExpression(operator string, left, right object.Object) obje
 	default:
 		return newError("unknown operator: %s %s %s", left.Type(), operator, right.Type())
 	}
+}
+
+func evalStringInfixExpression(operator string, left, right object.Object) object.Object {
+  leftValue := left.(*object.String).Value
+  rightValue := right.(*object.String).Value
+
+  switch operator {
+  case "+":
+    return &object.String{Value: leftValue + rightValue}
+  default:
+    return newError("unknown operator: %s %s %s", left.Type(), operator, right.Type())
+  }
 }
 
 func evalIfExpression(ie *ast.IfExpression, env *object.Environment) object.Object {
