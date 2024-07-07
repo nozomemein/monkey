@@ -38,6 +38,8 @@ const (
 	RPAREN = ")"
 	LBRACE = "{"
 	RBRACE = "}"
+  LBRAKET = "["
+  RBRAKET = "]"
 
 	// キーワード
 	FUNCTION = "FUNCTION"

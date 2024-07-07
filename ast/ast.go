@@ -293,3 +293,27 @@ type StringLiteral struct {
 func (sl *StringLiteral) expressionNode()      {}
 func (sl *StringLiteral) TokenLiteral() string { return sl.Token.Literal }
 func (sl *StringLiteral) String() string       { return sl.Token.Literal }
+
+// ArrayLiteral は配列リテラルを表す構造体
+type ArrayLiteral struct {
+  Token    token.Token // '[' トークン
+  Elements []Expression
+}
+
+// ArrayLiteral は Expression Interface を満たす
+func (al *ArrayLiteral) expressionNode()      {}
+func (al *ArrayLiteral) TokenLiteral() string { return al.Token.Literal }
+func (al *ArrayLiteral) String() string {
+  var out bytes.Buffer
+
+  elements := []string{}
+  for _, el := range al.Elements {
+    elements = append(elements, el.String())
+  }
+
+  out.WriteString("[")
+  out.WriteString(strings.Join(elements, ", "))
+  out.WriteString("]")
+
+  return out.String()
+}
