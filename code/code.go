@@ -57,7 +57,7 @@ type Definition struct {
 }
 
 var definitions = map[Opcode]*Definition{
-	OpConstant: {"OpConstant", []int{2}},
+	OpConstant: {"OpConstant", []int{2}}, // The operand is the index of the constant in the constant pool
 }
 
 func Lookup(op byte) (*Definition, error) {
