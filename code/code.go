@@ -52,6 +52,7 @@ type Opcode byte
 const (
 	OpConstant Opcode = iota
 	OpAdd
+	OpPop
 )
 
 type Definition struct {
@@ -62,6 +63,7 @@ type Definition struct {
 var definitions = map[Opcode]*Definition{
 	OpConstant: {"OpConstant", []int{2}}, // The operand is the index of the constant in the constant pool
 	OpAdd:      {"OpAdd", []int{}},
+	OpPop:      {"OpPop", []int{}}, // Pop the top of the stack to clean up the stack value which is not needed
 }
 
 // Lookup returns the definition of an opcode
