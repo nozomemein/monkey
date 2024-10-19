@@ -38,6 +38,8 @@ func (ins Instructions) fmtInstruction(def *Definition, operands []int) string {
 	}
 
 	switch operandCount {
+	case 0:
+		return def.Name
 	case 1:
 		return fmt.Sprintf("%s %d", def.Name, operands[0])
 	}
@@ -49,6 +51,7 @@ type Opcode byte
 
 const (
 	OpConstant Opcode = iota
+	OpAdd
 )
 
 type Definition struct {
@@ -58,8 +61,10 @@ type Definition struct {
 
 var definitions = map[Opcode]*Definition{
 	OpConstant: {"OpConstant", []int{2}}, // The operand is the index of the constant in the constant pool
+	OpAdd:      {"OpAdd", []int{}},
 }
 
+// Lookup returns the definition of an opcode
 func Lookup(op byte) (*Definition, error) {
 	def, ok := definitions[Opcode(op)]
 	if !ok {
@@ -68,6 +73,7 @@ func Lookup(op byte) (*Definition, error) {
 	return def, nil
 }
 
+// Make creates an instruction from an opcode and operands
 func Make(op Opcode, operands ...int) Instructions {
 	def, ok := definitions[op]
 
@@ -96,6 +102,7 @@ func Make(op Opcode, operands ...int) Instructions {
 	return instruction
 }
 
+// ReadOperands reads the operands from an instruction
 func ReadOperands(def *Definition, ins Instructions) ([]int, int) {
 	opperands := make([]int, len(def.OperandWidths))
 	offset := 0
