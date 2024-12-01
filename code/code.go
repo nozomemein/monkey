@@ -63,6 +63,8 @@ const (
 	OpGreaterThan
 	OpMinus
 	OpBang
+	OpJumpNotTruthy
+	OpJump
 )
 
 type Definition struct {
@@ -71,19 +73,21 @@ type Definition struct {
 }
 
 var definitions = map[Opcode]*Definition{
-	OpConstant: {"OpConstant", []int{2}}, // The operand is the index of the constant in the constant pool
-	OpAdd:      {"OpAdd", []int{}},
-	OpPop:      {"OpPop", []int{}}, // Pop the top of the stack to clean up the stack value which is not needed
-	OpSub:      {"OpSub", []int{}},
-	OpMul:      {"OpMul", []int{}},
-	OpDiv:      {"OpDiv", []int{}},
-	OpTrue:     {"OpTrue", []int{}},
-	OpFalse:    {"OpFalse", []int{}},
-	OpEqual:    {"OpEqual", []int{}},
-	OpNotEqual: {"OpNotEqual", []int{}},
-	OpGreaterThan: {"OpGraeterThan", []int{}},
-	OpMinus:      {"OpMinus", []int{}},
-	OpBang:       {"OpBang", []int{}},
+	OpConstant:      {"OpConstant", []int{2}}, // The operand is the index of the constant in the constant pool
+	OpAdd:           {"OpAdd", []int{}},
+	OpPop:           {"OpPop", []int{}}, // Pop the top of the stack to clean up the stack value which is not needed
+	OpSub:           {"OpSub", []int{}},
+	OpMul:           {"OpMul", []int{}},
+	OpDiv:           {"OpDiv", []int{}},
+	OpTrue:          {"OpTrue", []int{}},
+	OpFalse:         {"OpFalse", []int{}},
+	OpEqual:         {"OpEqual", []int{}},
+	OpNotEqual:      {"OpNotEqual", []int{}},
+	OpGreaterThan:   {"OpGraeterThan", []int{}},
+	OpMinus:         {"OpMinus", []int{}},
+	OpBang:          {"OpBang", []int{}},
+	OpJumpNotTruthy: {"OpJumpNotTruthy", []int{2}},
+	OpJump:          {"OpJump", []int{2}},
 }
 
 // Lookup returns the definition of an opcode
