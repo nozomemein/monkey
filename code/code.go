@@ -61,6 +61,8 @@ const (
 	OpEqual
 	OpNotEqual
 	OpGreaterThan
+	OpMinus
+	OpBang
 )
 
 type Definition struct {
@@ -80,6 +82,8 @@ var definitions = map[Opcode]*Definition{
 	OpEqual:    {"OpEqual", []int{}},
 	OpNotEqual: {"OpNotEqual", []int{}},
 	OpGreaterThan: {"OpGraeterThan", []int{}},
+	OpMinus:      {"OpMinus", []int{}},
+	OpBang:       {"OpBang", []int{}},
 }
 
 // Lookup returns the definition of an opcode
