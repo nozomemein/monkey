@@ -5,6 +5,7 @@ import (
 	"monkey/ast"
 	"monkey/code"
 	"monkey/object"
+	"sort"
 )
 
 // Compiler has a method Compile that takes an AST node and compiles it into bytecode
@@ -189,6 +190,27 @@ func (c *Compiler) Compile(node ast.Node) error {
 			}
 		}
 		c.emit(code.OpArray, len(node.Elements))
+	case *ast.HashLiteral:
+		keys := []ast.Expression{}
+		for k := range node.Pairs {
+			keys = append(keys, k)
+		}
+		// To avoid the order of the keys in the hash randomly changing, sort the keys here.
+		sort.Slice(keys, func(i, j int) bool {
+			return keys[i].String() < keys[j].String()
+		})
+
+		for _, k := range keys {
+			err := c.Compile(k)
+			if err != nil {
+				return err
+			}
+			err = c.Compile(node.Pairs[k])
+			if err != nil {
+				return err
+			}
+		}
+		c.emit(code.OpHash, len(node.Pairs)*2)
 	case *ast.Identifier:
 		symbol, ok := c.symbolTable.Resolve(node.Value)
 		if !ok {
