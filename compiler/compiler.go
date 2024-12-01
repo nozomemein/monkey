@@ -72,6 +72,7 @@ func (c *Compiler) Compile(node ast.Node) error {
 
 		// Emit an OpJumpNotTruthy instruction with a dummy value
 		jumpNotTruthyPos := c.emit(code.OpJumpNotTruthy, 9999)
+		
 		err = c.Compile(node.Consequence)
 		if err != nil {
 			return err
@@ -82,16 +83,15 @@ func (c *Compiler) Compile(node ast.Node) error {
 			c.removeLastPop()
 		}
 
-		if node.Alternative == nil {
+		// Emit an OpJump instruction with a dummy value
+		jumpPos := c.emit(code.OpJump, 9999)
 
-			afterConsequence := len(c.instructions)
-			c.changeOperand(jumpNotTruthyPos, afterConsequence)
+		afterConsequence := len(c.instructions)
+		c.changeOperand(jumpNotTruthyPos, afterConsequence)
+
+		if node.Alternative == nil {
+			c.emit(code.OpNull)
 		} else {
-			// Emit an OpJump instruction with a dummy value
-			jumpPos := c.emit(code.OpJump, 9999)
-			// Change the operand of the OpJumpNotTruthy instruction to point to the beginning of the alternative block
-			afterConsequence := len(c.instructions)
-			c.changeOperand(jumpNotTruthyPos, afterConsequence)
 
 			err = c.Compile(node.Alternative)
 			if err != nil {
@@ -101,11 +101,10 @@ func (c *Compiler) Compile(node ast.Node) error {
 			if c.lastInstructionIsPop() {
 				c.removeLastPop()
 			}
-
-			afterAlternative := len(c.instructions)
-			// Change the operand of the OpJump instruction to point to the end of the alternative block, which is pop instruction and the end of the whole if expression(note: the last pop instruction is not yet added here.)
-			c.changeOperand(jumpPos, afterAlternative)
 		}
+		afterAlternative := len(c.instructions)
+		// Change the operand of the OpJump instruction to point to the end of the alternative block, which is pop instruction and the end of the whole if expression(note: the last pop instruction is not yet added here.)
+		c.changeOperand(jumpPos, afterAlternative)
 	case *ast.InfixExpression:
 		if node.Operator == "<" {
 			err := c.Compile(node.Right)
