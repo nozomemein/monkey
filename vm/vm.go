@@ -42,8 +42,8 @@ func (vm *VM) Run() error {
 		// decode instructions
 		switch op {
 		case code.OpConstant:
-			constIndex := code.ReadUint16(vm.instructions[ip+1:])
-			ip += 2 // ensure that the next ip points to the next OpCode
+			constIndex := code.ReadUint16(vm.instructions[ip+1:]) // Fetch the operand of OpConstant by reading the next 2 bytes.
+			ip += 2                                               // ensure that the next ip points to the next OpCode. This is because. the operand width of OpConstant is 2 bytes.
 
 			err := vm.push(vm.constants[constIndex])
 			if err != nil {
@@ -51,6 +51,11 @@ func (vm *VM) Run() error {
 			}
 		case code.OpAdd, code.OpSub, code.OpMul, code.OpDiv:
 			err := vm.executeBinaryOperation(op)
+			if err != nil {
+				return err
+			}
+		case code.OpEqual, code.OpNotEqual, code.OpGreaterThan:
+			err := vm.executeComparison(op)
 			if err != nil {
 				return err
 			}
@@ -131,3 +136,48 @@ func (vm *VM) executeBinaryIntegerOperation(op code.Opcode, left, right object.O
 
 var True = &object.Boolean{Value: true}
 var False = &object.Boolean{Value: false}
+
+func (vm *VM) executeComparison(op code.Opcode) error {
+	right := vm.pop()
+	left := vm.pop()
+
+	if left.Type() == object.INTEGER_OBJ && right.Type() == object.INTEGER_OBJ {
+		return vm.executeIntegerComparison(op, left, right)
+	}
+
+	switch op {
+	case code.OpEqual:
+		return vm.push(nativeBoolToBooleanObject(right == left))
+	case code.OpNotEqual:
+		return vm.push(nativeBoolToBooleanObject(right != left))
+	default:
+		return fmt.Errorf("unknown operator: %d (%s %s)", op, left.Type(), right.Type())
+	}
+}
+
+func (vm *VM) executeIntegerComparison(op code.Opcode, left, right object.Object) error {
+	leftValue := left.(*object.Integer).Value
+	rightValue := right.(*object.Integer).Value
+
+	var result bool
+
+	switch op {
+	case code.OpEqual:
+		result = leftValue == rightValue
+	case code.OpNotEqual:
+		result = leftValue != rightValue
+	case code.OpGreaterThan:
+		result = leftValue > rightValue
+	default:
+		return fmt.Errorf("unknown integer operator: %d", op)
+	}
+
+	return vm.push(nativeBoolToBooleanObject(result))
+}
+
+func nativeBoolToBooleanObject(input bool) *object.Boolean {
+	if input {
+		return True
+	}
+	return False
+}
