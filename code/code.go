@@ -53,6 +53,9 @@ const (
 	OpConstant Opcode = iota
 	OpAdd
 	OpPop
+	OpSub
+	OpMul
+	OpDiv
 )
 
 type Definition struct {
@@ -64,6 +67,9 @@ var definitions = map[Opcode]*Definition{
 	OpConstant: {"OpConstant", []int{2}}, // The operand is the index of the constant in the constant pool
 	OpAdd:      {"OpAdd", []int{}},
 	OpPop:      {"OpPop", []int{}}, // Pop the top of the stack to clean up the stack value which is not needed
+	OpSub:      {"OpSub", []int{}},
+	OpMul:      {"OpMul", []int{}},
+	OpDiv:      {"OpDiv", []int{}},
 }
 
 // Lookup returns the definition of an opcode
