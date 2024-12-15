@@ -324,7 +324,7 @@ func TestLetStatementScopes(t *testing.T) {
 				code.Make(code.OpReturnValue),
 			}},
 			expectedInstructions: []code.Instructions{
-				code.Make(code.OpConstant, 0),
+				code.Make(code.OpConstant, 1),
 				code.Make(code.OpPop),
 			},
 		},
@@ -348,7 +348,7 @@ func TestLetStatementScopes(t *testing.T) {
 			},
 			},
 			expectedInstructions: []code.Instructions{
-				code.Make(code.OpConstant, 0),
+				code.Make(code.OpConstant, 2),
 				code.Make(code.OpPop),
 			},
 		},
@@ -577,6 +577,8 @@ func TestCompilerScopes(t *testing.T) {
 		t.Errorf("scopeIndex wrong. got=%d, want=%d", compiler.scopeIndex, 0)
 	}
 
+	globalSymboLTable := compiler.symbolTable
+
 	compiler.emit(code.OpMul)
 	compiler.enterScope()
 
@@ -597,10 +599,21 @@ func TestCompilerScopes(t *testing.T) {
 			last.OpCode, code.OpSub)
 	}
 
+	if compiler.symbolTable.Outer != globalSymboLTable { 
+		t.Errorf("compiler did not enclose symbolTable")
+	}
+
 	compiler.leaveScope()
 
 	if compiler.scopeIndex != 0 {
 		t.Errorf("scopeIndex wrong. got=%d, want=%d", compiler.scopeIndex, 0)
+	}
+
+	if compiler.symbolTable != globalSymboLTable { 
+		t.Errorf("compiler did not restore global symbolTable")
+	}
+	if compiler.symbolTable.Outer != nil {
+		t.Errorf("compiler modified global symbolTable incorrectly")
 	}
 
 	compiler.emit(code.OpAdd)
