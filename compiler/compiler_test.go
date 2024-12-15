@@ -585,11 +585,11 @@ func TestFunctionCalls(t *testing.T) {
 				},
 			},
 			expectedInstructions: []code.Instructions{
-				code.Make(code.OpConstant, 1),
-				code.Make(code.OpSetGlobal, 0),
-				code.Make(code.OpGetGlobal, 0),
-				code.Make(code.OpCall),
-				code.Make(code.OpPop),
+				code.Make(code.OpConstant, 1),  // define the function with the above constants
+				code.Make(code.OpSetGlobal, 0), // evaluating the letStatement here
+				code.Make(code.OpGetGlobal, 0), // evaluating the call expression noArg()
+				code.Make(code.OpCall),         // calling the function in the frame
+				code.Make(code.OpPop),          // return the value of the function
 			},
 		},
 	}

@@ -81,6 +81,8 @@ func (vm *VM) Run() error {
 			if err != nil {
 				return err
 			}
+		case code.OpPop:
+			vm.pop()
 		case code.OpAdd, code.OpSub, code.OpMul, code.OpDiv:
 			err := vm.executeBinaryOperation(op)
 			if err != nil {
@@ -172,8 +174,31 @@ func (vm *VM) Run() error {
 			if err != nil {
 				return err
 			}
-		case code.OpPop:
-			vm.pop()
+		case code.OpCall:
+			fn, ok := vm.stack[vm.sp-1].(*object.CompiledFunction)
+			if !ok {
+				return fmt.Errorf("calling non-function ")
+			}
+			frame := NewFrame(fn)
+			vm.pushFrame(frame)
+		case code.OpReturnValue:
+			returnValue := vm.pop()
+
+			vm.popFrame()
+			vm.pop() // Pop the function object
+
+			err := vm.push(returnValue) // Push the return value to the stack
+			if err != nil {
+				return err
+			}
+		case code.OpReturn:
+			vm.popFrame()
+			vm.pop() // Pop the function object
+
+			err := vm.push(Null) // Push Null to the stack
+			if err != nil {
+				return err
+			}
 		}
 	}
 
