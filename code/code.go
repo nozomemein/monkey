@@ -42,6 +42,8 @@ func (ins Instructions) fmtInstruction(def *Definition, operands []int) string {
 		return def.Name
 	case 1:
 		return fmt.Sprintf("%s %d", def.Name, operands[0])
+	case 2:
+		return fmt.Sprintf("%s %d %d", def.Name, operands[0], operands[1])
 	}
 
 	return ""
@@ -77,6 +79,7 @@ const (
 	OpGetLocal
 	OpSetLocal
 	OpGetBuiltin
+	OpClosure
 )
 
 type Definition struct {
@@ -112,6 +115,7 @@ var definitions = map[Opcode]*Definition{
 	OpGetLocal:      {"OpGetLocal", []int{1}},
 	OpSetLocal:      {"OpSetLocal", []int{1}},
 	OpGetBuiltin:    {"OpGetBuiltin", []int{1}},
+	OpClosure:       {"OpClosure", []int{2, 1}}, // The first operand is the constant index of the function, the second operand is the number of free variables
 }
 
 // Lookup returns the definition of an opcode
