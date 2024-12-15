@@ -80,6 +80,7 @@ const (
 	OpSetLocal
 	OpGetBuiltin
 	OpClosure
+	OpGetFree
 )
 
 type Definition struct {
@@ -116,6 +117,7 @@ var definitions = map[Opcode]*Definition{
 	OpSetLocal:      {"OpSetLocal", []int{1}},
 	OpGetBuiltin:    {"OpGetBuiltin", []int{1}},
 	OpClosure:       {"OpClosure", []int{2, 1}}, // The first operand is the constant index of the function, the second operand is the number of free variables
+	OpGetFree:       {"OpGetFree", []int{1}},
 }
 
 // Lookup returns the definition of an opcode
