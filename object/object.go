@@ -180,6 +180,7 @@ func (h *Hash) Inspect() string {
 
 type CompiledFunction struct {
 	Instructions code.Instructions
+	NumLocals    int // Number of local variables the function uses
 }
 
 func (cf *CompiledFunction) Type() ObjectType { return COMPILED_FUNCTION_OBJ }
