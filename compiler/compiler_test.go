@@ -599,7 +599,7 @@ func TestCompilerScopes(t *testing.T) {
 			last.OpCode, code.OpSub)
 	}
 
-	if compiler.symbolTable.Outer != globalSymboLTable { 
+	if compiler.symbolTable.Outer != globalSymboLTable {
 		t.Errorf("compiler did not enclose symbolTable")
 	}
 
@@ -609,7 +609,7 @@ func TestCompilerScopes(t *testing.T) {
 		t.Errorf("scopeIndex wrong. got=%d, want=%d", compiler.scopeIndex, 0)
 	}
 
-	if compiler.symbolTable != globalSymboLTable { 
+	if compiler.symbolTable != globalSymboLTable {
 		t.Errorf("compiler did not restore global symbolTable")
 	}
 	if compiler.symbolTable.Outer != nil {
@@ -648,8 +648,8 @@ func TestFunctionCalls(t *testing.T) {
 				},
 			},
 			expectedInstructions: []code.Instructions{
-				code.Make(code.OpConstant, 1),
-				code.Make(code.OpCall),
+				code.Make(code.OpConstant, 1), // The compiled function
+				code.Make(code.OpCall, 0),
 				code.Make(code.OpPop),
 			},
 		},
@@ -666,8 +666,50 @@ func TestFunctionCalls(t *testing.T) {
 				code.Make(code.OpConstant, 1),  // define the function with the above constants
 				code.Make(code.OpSetGlobal, 0), // evaluating the letStatement here
 				code.Make(code.OpGetGlobal, 0), // evaluating the call expression noArg()
-				code.Make(code.OpCall),         // calling the function in the frame
+				code.Make(code.OpCall, 0),      // calling the function in the frame
 				code.Make(code.OpPop),          // return the value of the function
+			},
+		},
+		{
+			input: "let oneArg = fn(a) {a;}; oneArg(24);",
+			expectedConstants: []interface{}{
+				[]code.Instructions{
+					code.Make(code.OpGetLocal, 0),
+					code.Make(code.OpReturnValue),
+				},
+				24,
+			},
+			expectedInstructions: []code.Instructions{
+				code.Make(code.OpConstant, 0),
+				code.Make(code.OpSetGlobal, 0),
+				code.Make(code.OpGetGlobal, 0),
+				code.Make(code.OpConstant, 1),
+				code.Make(code.OpCall, 1),
+				code.Make(code.OpPop),
+			},
+		},
+		{
+			input: "let manyArg = fn(a, b, c) {a; b; c; }; manyArg(24, 25, 26);",
+			expectedConstants: []interface{}{
+				[]code.Instructions{
+					code.Make(code.OpGetLocal, 0),
+					code.Make(code.OpPop),
+					code.Make(code.OpGetLocal, 1),
+					code.Make(code.OpPop),
+					code.Make(code.OpGetLocal, 2),
+					code.Make(code.OpReturnValue),
+				},
+				24, 25, 26,
+			},
+			expectedInstructions: []code.Instructions{
+				code.Make(code.OpConstant, 0),
+				code.Make(code.OpSetGlobal, 0),
+				code.Make(code.OpGetGlobal, 0),
+				code.Make(code.OpConstant, 1),
+				code.Make(code.OpConstant, 2),
+				code.Make(code.OpConstant, 3),
+				code.Make(code.OpCall, 3),
+				code.Make(code.OpPop),
 			},
 		},
 	}
