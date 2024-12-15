@@ -179,8 +179,9 @@ func (h *Hash) Inspect() string {
 }
 
 type CompiledFunction struct {
-	Instructions code.Instructions
-	NumLocals    int // Number of local variables the function uses
+	Instructions  code.Instructions
+	NumLocals     int // Number of local variables the function uses. note: this includes the function's arguments.
+	NumParameters int // Number of parameters the function takes
 }
 
 func (cf *CompiledFunction) Type() ObjectType { return COMPILED_FUNCTION_OBJ }

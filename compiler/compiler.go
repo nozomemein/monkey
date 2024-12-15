@@ -286,7 +286,7 @@ func (c *Compiler) Compile(node ast.Node) error {
 		for _, p := range node.Parameters {
 			c.symbolTable.Define(p.Value)
 		}
-		err := c.Compile(node.Body)
+		err := c.Compile(node.Body) // Compile the body of the function e.g. define the local variables in the corresponding symbol table.
 		if err != nil {
 			return err
 		}
@@ -299,12 +299,13 @@ func (c *Compiler) Compile(node ast.Node) error {
 			c.emit(code.OpReturn)
 		}
 
-		numLocals := c.symbolTable.numDefinitions
+		numLocals := c.symbolTable.numDefinitions // the number of local variables and arguments
 		instructions := c.leaveScope()
 
 		compiledFn := &object.CompiledFunction{
-			Instructions: instructions,
-			NumLocals:    numLocals,
+			Instructions:  instructions,
+			NumLocals:     numLocals,
+			NumParameters: len(node.Parameters),
 		}
 		c.emit(code.OpConstant, c.addConstant(compiledFn))
 
