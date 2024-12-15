@@ -29,7 +29,8 @@ type VM struct {
 
 func New(bytecode *compiler.Bytecode) *VM {
 	mainFn := &object.CompiledFunction{Instructions: bytecode.Instructions}
-	mainFrame := NewFrame(mainFn, 0)
+	mainClousre := &object.Closure{Fn: mainFn}
+	mainFrame := NewFrame(mainClousre, 0)
 
 	frames := make([]*Frame, MaxFrames)
 	frames[0] = mainFrame
@@ -179,6 +180,15 @@ func (vm *VM) Run() error {
 			vm.currentFrame().ip += 1
 
 			err := vm.executeCall(int(numArgs))
+			if err != nil {
+				return err
+			}
+		case code.OpClosure:
+			constIndex := code.ReadUint16(ins[ip+1:])
+			_ = code.ReadUint8(ins[ip+3:]) // numFree
+			vm.currentFrame().ip += 3
+
+			err := vm.pushClosure(int(constIndex))
 			if err != nil {
 				return err
 			}
@@ -467,8 +477,8 @@ func (vm *VM) popFrame() *Frame {
 func (vm *VM) executeCall(numArgs int) error {
 	callee := vm.stack[vm.sp-1-numArgs]
 	switch callee := callee.(type) {
-	case *object.CompiledFunction:
-		return vm.callFunction(callee, numArgs)
+	case *object.Closure:
+		return vm.callClosure(callee, numArgs)
 	case *object.Builtin:
 		return vm.callBuiltin(callee, numArgs)
 	default:
@@ -476,14 +486,14 @@ func (vm *VM) executeCall(numArgs int) error {
 	}
 }
 
-func (vm *VM) callFunction(fn *object.CompiledFunction, numArgs int) error {
-	if numArgs != fn.NumParameters {
-		return fmt.Errorf("wrong number of arguments: want=%d, got=%d", fn.NumParameters, numArgs)
+func (vm *VM) callClosure(cl *object.Closure, numArgs int) error {
+	if numArgs != cl.Fn.NumParameters {
+		return fmt.Errorf("wrong number of arguments: want=%d, got=%d", cl.Fn.NumParameters, numArgs)
 	}
 
-	frame := NewFrame(fn, vm.sp-numArgs) // To avoid the situation where the base pointer skips the arguments on the stack, we set the base pointer to the current stack pointer minus the number of arguments.
+	frame := NewFrame(cl, vm.sp-numArgs) // To avoid the situation where the base pointer skips the arguments on the stack, we set the base pointer to the current stack pointer minus the number of arguments.
 	vm.pushFrame(frame)
-	vm.sp = frame.basePointer + fn.NumLocals // Allocate space for local variables
+	vm.sp = frame.basePointer + cl.Fn.NumLocals // Allocate space for local variables
 
 	return nil
 }
@@ -499,4 +509,15 @@ func (vm *VM) callBuiltin(builtin *object.Builtin, numArgs int) error {
 	}
 
 	return nil
+}
+
+func (vm *VM) pushClosure(constIndex int) error {
+	constant := vm.constants[constIndex]
+	function, ok := constant.(*object.CompiledFunction)
+	if !ok {
+		return fmt.Errorf("not a function: %+v", constant)
+	}
+
+	closure := &object.Closure{Fn: function}
+	return vm.push(closure)
 }
